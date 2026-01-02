@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="線上影片壓縮工具 - 使用瀏覽器端技術壓縮影片，無需上傳到伺服器，完全在本地處理">
+    <title>Video Compressor Web - 線上影片壓縮工具</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <span class="app-icon">🎬</span>
+                Video Compressor Web
+            </div>
+            <div class="header-subtitle">
+                <span class="privacy-badge">🔒 本地處理</span>
+                影片不會上傳到伺服器
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>輸出設定</h2>
+            </div>
+
+            <div class="settings-group">
+                <label class="setting-label">輸出格式</label>
+                <div class="select-wrapper">
+                    <select id="outputFormat" class="select-input">
+                        <option value="mp4">MP4 (H.264)</option>
+                        <option value="webm">WebM (VP8)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="setting-label">編碼器</label>
+                <div class="select-wrapper">
+                    <select id="videoCodec" class="select-input">
+                        <option value="h264">H.264 (相容性最佳)</option>
+                        <option value="vp8">VP8 - 網頁用</option>
+                    </select>
+                </div>
+                <div class="setting-hint">⚡ 瀏覽器端處理，資料不離開裝置</div>
+            </div>
+
+            <div class="settings-group" id="qualitySettingsGroup">
+                <label class="setting-label">
+                    壓縮品質 (相對原始位元率)
+                    <span class="quality-value" id="crfValue">50%</span>
+                </label>
+                <input type="range" id="crfSlider" class="slider" min="10" max="100" value="50">
+                <div class="slider-labels">
+                    <span>最小檔案 (10%)</span>
+                    <span>原始品質 (100%)</span>
+                </div>
+                <div class="quality-override-hint hidden" id="qualityOverrideHint">
+                    ⚠️ 品質由目標大小自動計算
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="setting-label">音訊設定</label>
+                <div class="select-wrapper">
+                    <select id="audioMode" class="select-input">
+                        <option value="copy">保持原始音訊</option>
+                        <option value="compress">壓縮音訊品質</option>
+                        <option value="mute">靜音 (無音訊)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="setting-label checkbox-label">
+                    <input type="checkbox" id="enableResize">
+                    <span class="checkbox-custom"></span>
+                    調整影像尺寸
+                </label>
+                <div class="resize-options hidden" id="resizeOptions">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>寬度</label>
+                            <input type="number" id="resizeWidth" class="number-input" placeholder="自動" min="100"
+                                max="7680">
+                        </div>
+                        <span class="input-separator">×</span>
+                        <div class="input-group">
+                            <label>高度</label>
+                            <input type="number" id="resizeHeight" class="number-input" placeholder="自動" min="100"
+                                max="4320">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="setting-label checkbox-label">
+                    <input type="checkbox" id="enableTargetSize">
+                    <span class="checkbox-custom"></span>
+                    壓縮至限定大小以下
+                </label>
+                <div class="target-size-options hidden" id="targetSizeOptions">
+                    <div class="input-row">
+                        <input type="number" id="targetSizeValue" class="number-input wide" placeholder="500" min="1">
+                        <select id="targetSizeUnit" class="select-input small">
+                            <option value="MB" selected>MB</option>
+                            <option value="GB">GB</option>
+                            <option value="KB">KB</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <div class="quality-presets">
+                <label class="setting-label">快速預設</label>
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-quality="75" data-codec="h264">
+                        <span class="preset-icon">✨</span>
+                        高畫質 (75%)
+                    </button>
+                    <button class="preset-btn active" data-quality="50" data-codec="h264">
+                        <span class="preset-icon">⚖️</span>
+                        平衡 (50%)
+                    </button>
+                    <button class="preset-btn" data-quality="25" data-codec="h264">
+                        <span class="preset-icon">📦</span>
+                        小檔案 (25%)
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Browser Compatibility Warning -->
+            <div class="browser-warning hidden" id="browserWarning">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-content">
+                    <h4>瀏覽器相容性注意</h4>
+                    <p id="warningMessage">您的瀏覽器可能不支援所有功能。建議使用最新版本的 Chrome、Edge 或 Firefox。</p>
+                </div>
+            </div>
+
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-content">
+                    <div class="drop-icon">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <h3>拖放影片檔案到這裡</h3>
+                    <p>或點擊下方按鈕選擇檔案</p>
+                    <button class="btn btn-primary" id="selectFilesBtn">
+                        <span class="btn-icon">📁</span>
+                        選擇檔案
+                    </button>
+                    <input type="file" id="fileInput" accept="video/*" multiple hidden>
+                    <div class="supported-formats">
+                        支援格式：MOV, MP4, MPG, WMV, WebM, AVI, MKV, FLV, M4V, 3GP
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading FFmpeg Overlay -->
+            <div class="loading-overlay hidden" id="ffmpegLoadingOverlay">
+                <div class="loading-spinner"></div>
+                <p id="ffmpegLoadingText">正在載入 FFmpeg 核心...</p>
+                <div class="loading-progress">
+                    <div class="loading-progress-bar" id="ffmpegLoadingProgress"></div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay hidden" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+                <p>正在讀取檔案資訊...</p>
+            </div>
+
+            <!-- File List -->
+            <div class="file-list-container hidden" id="fileListContainer">
+                <div class="file-list-header">
+                    <h3>待處理檔案 <span class="file-count" id="fileCount">0</span></h3>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="clearAllBtn">
+                            <span class="btn-icon">🗑️</span>
+                            清除全部
+                        </button>
+                        <button class="btn btn-primary" id="startConvertBtn" disabled>
+                            <span class="btn-icon">🚀</span>
+                            開始轉檔
+                        </button>
+                    </div>
+                </div>
+                <div class="file-list" id="fileList">
+                    <!-- File items will be added here -->
+                </div>
+            </div>
+
+            <!-- Progress Panel -->
+            <div class="progress-panel hidden" id="progressPanel">
+                <div class="progress-header">
+                    <h3>轉檔進度</h3>
+                    <button class="btn btn-danger" id="cancelBtn">
+                        <span class="btn-icon">✖</span>
+                        取消
+                    </button>
+                </div>
+                <div class="current-file" id="currentFileInfo">
+                    <div class="file-name">正在處理...</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+                <div class="progress-details" id="progressDetails">
+                    <span class="detail-item">
+                        <span class="detail-label">狀態:</span>
+                        <span class="detail-value" id="progressStatus">準備中...</span>
+                    </span>
+                    <span class="detail-item">
+                        <span class="detail-label">已用時間:</span>
+                        <span class="detail-value" id="elapsedTime">--</span>
+                    </span>
+                    <span class="detail-item">
+                        <span class="detail-label">預估剩餘:</span>
+                        <span class="detail-value highlight" id="remainingTime">計算中...</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel hidden" id="resultsPanel">
+                <div class="results-header">
+                    <h3>轉檔完成</h3>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="clearResultsBtn">
+                            <span class="btn-icon">🗑️</span>
+                            清除全部
+                        </button>
+                        <button class="btn btn-primary" id="newConversionBtn">
+                            <span class="btn-icon">➕</span>
+                            新增檔案
+                        </button>
+                    </div>
+                </div>
+                <div class="results-list" id="resultsList">
+                    <!-- Results will be added here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <span>Video Compressor Web v1.0.0</span>
+            <span class="footer-divider">|</span>
+            <span>使用 FFmpeg WASM 技術</span>
+            <span class="footer-divider">|</span>
+            <a href="https://github.com/miku4ocean/mac-video-transfer-web" target="_blank" rel="noopener">GitHub</a>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- FFmpeg WASM - Using local files to avoid CORS issues -->
+    <script src="ffmpeg/ffmpeg.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
