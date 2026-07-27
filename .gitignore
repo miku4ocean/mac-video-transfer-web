@@ -27,3 +27,9 @@ build/
 # Environment
 .env
 .env.local
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

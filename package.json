@@ -1,0 +1,28 @@
+{
+  "name": "mac-video-transfer-web",
+  "version": "1.0.0",
+  "description": "🎬 一個完全在瀏覽器端運行的影片壓縮工具，使用 FFmpeg WASM 技術，資料不會上傳到伺服器。",
+  "main": "app.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "serve": "node scripts/serve.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miku4ocean/mac-video-transfer-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/miku4ocean/mac-video-transfer-web/issues"
+  },
+  "homepage": "https://github.com/miku4ocean/mac-video-transfer-web#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  }
+}
