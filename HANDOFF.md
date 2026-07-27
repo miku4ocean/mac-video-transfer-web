@@ -4,6 +4,14 @@
 ## 目前目標
 提供跨平台網頁版影片壓縮工具（FFmpeg WASM），對應 mac-video-transfer 的網頁替代方案。
 
+## GitHub Pages 上線狀態（2026-07-27）
+- **已上線**：https://miku4ocean.github.io/mac-video-transfer-web/
+- 來源：branch `main`，path `/`（repo 原本就是 index.html 在根目錄，不需要 /docs）
+- 部署當下 API 顯示 Pages 早已存在（`status: built`），非本次新開站，僅確認現況
+- 驗證：`curl -sI` 回 `HTTP/2 200`；`<title>` 抓到「Video Compressor Web - 線上影片壓縮工具」，確認非 404／非 GitHub 預設頁
+- 資源路徑煙霧測試：`styles.css`、`app.js`、`ffmpeg/ffmpeg.js`、`ffmpeg/ffmpeg-core.js`、`ffmpeg/ffmpeg-core.wasm` 皆為相對路徑，實際 curl 全部回 200，project pages 子路徑下沒有斷裂，未需修正
+- 密鑰掃描（api key/token/secret/sk-/ghp_/AKIA/password，排除 node_modules/.git/dist/build/ffmpeg）：無命中
+
 ## 狀態
 - 已完成：初始提交，包含完整功能實作（f841945，2026-01-02）；README 完整
 - 已完成：本機 smoke test 全綠——`python3 -m http.server 8080` 起服後，用 puppeteer-core
@@ -28,7 +36,7 @@
 
 ## 下一步（接手的人從這裡開始）
 1. 真人用瀏覽器（非 headless）試幾種實際素材（大檔、不同格式 MOV/AVI/MKV）跑一輪壓縮，確認 UI 顯示與下載檔案可正常播放
-2. 若要部署 GitHub Pages：目前不需要 COOP/COEP（單執行緒 core），可直接部署，建議部署後照 README 網址跑一次同樣的 smoke test（`tests/http-e2e.spec.js` 目前只打本機 `scripts/serve.js`，尚未指向部署後網址，需要的話可另外調整 `baseURL`）
+2. ~~若要部署 GitHub Pages~~ 已完成，見上方「GitHub Pages 上線狀態」。目前只驗證過靜態資源可載入，尚未在部署網址上實跑一次完整的上傳→壓縮→下載流程；`tests/http-e2e.spec.js` 目前只打本機 `scripts/serve.js`，尚未指向部署後網址，需要的話可調整 `baseURL` 指到 `https://miku4ocean.github.io/mac-video-transfer-web/` 再跑一次
 
 ## 地雷（別踩）
 - 大檔案（>500MB）可能 OOM，非 bug
