@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>線框稿：初始狀態（拖放區） — Video Compressor Web</title>
+<style>
+:root{
+  --paper:#FBFAF7; --ink:#181B20; --muted:#6B7178;
+  --line:#E7E3DA; --accent:#2E4B8F; --accent-soft:#EAEEF7;
+  --ok:#1F7A54; --err:#B03A2E; --warn:#B8860B;
+  --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);}
+.meta-bar{
+  background:var(--paper); border-bottom:1px solid var(--line); padding:10px 20px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.wordmark{ font-family:var(--serif); font-size:18px; margin:0; }
+.wordmark .dot{ color:var(--accent); }
+.section-title{
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+}
+.steps{ display:flex; gap:6px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+.steps .step{ padding:2px 8px; border:1px solid var(--line); border-radius:999px; }
+.steps .step.active{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); font-weight:600; }
+a.back{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--accent); text-decoration:none; }
+
+.app-header{
+  height:60px; border-bottom:1px solid var(--line); display:flex; align-items:center;
+  padding:0 24px; gap:16px; background:var(--paper);
+}
+.app-header .title{ font-family:var(--serif); font-size:20px; display:flex; align-items:center; gap:8px; }
+.badge-privacy{
+  font-family:var(--mono); font-size:11px; border:1px solid var(--ok); color:var(--ok);
+  border-radius:999px; padding:2px 10px;
+}
+.app-header .sub{ color:var(--muted); font-size:13px; }
+
+.main-container{ display:flex; min-height:560px; }
+.sidebar{
+  width:300px; flex:none; border-right:1px solid var(--line); padding:20px; background:var(--paper);
+}
+.sidebar h2{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; }
+.setting-group{ margin-bottom:18px; }
+.setting-label{ display:block; font-size:12.5px; color:var(--ink); margin-bottom:6px; }
+.fake-select, .fake-input{
+  border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; color:var(--ink); background:var(--paper);
+}
+.fake-slider{ height:4px; background:var(--line); border-radius:2px; position:relative; margin:10px 0; }
+.fake-slider::after{ content:""; position:absolute; left:40%; top:-5px; width:14px; height:14px; border-radius:50%; background:var(--accent); }
+.slider-labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); }
+.presets{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.preset-btn{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12.5px; text-align:left; background:var(--paper); }
+.preset-btn.active{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.divider{ border-top:1px solid var(--line); margin:18px 0; }
+
+.content{ flex:1; padding:32px; display:flex; align-items:flex-start; justify-content:center; }
+.drop-zone{
+  width:100%; max-width:640px; margin-top:40px; border:2px dashed var(--line); border-radius:10px;
+  padding:60px 32px; text-align:center; background:var(--paper);
+}
+.drop-icon{ color:var(--muted); margin-bottom:16px; }
+.drop-zone h3{ margin:0 0 8px; font-size:18px; }
+.drop-zone p{ color:var(--muted); margin:0 0 20px; font-size:13px; }
+.btn{
+  font-family:var(--sans); font-size:13.5px; border-radius:8px; padding:10px 20px; border:1px solid transparent; cursor:default;
+}
+.btn-primary{ background:var(--accent); color:#fff; }
+.supported-formats{ margin-top:20px; font-size:11.5px; color:var(--muted); font-family:var(--mono); }
+
+.app-footer{
+  height:40px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  gap:10px; font-size:11.5px; color:var(--muted);
+}
+@media (prefers-color-scheme: dark){
+  body{ background:#14161A; color:#EDEBE6; }
+  .meta-bar,.app-header,.app-footer,.sidebar,.fake-select,.fake-input,.preset-btn,.drop-zone{ background:#1B1E24; border-color:#2B2F37; }
+  .steps .step{ border-color:#2B2F37; }
+}
+</style>
+</head>
+<body>
+  <div class="meta-bar">
+    <p class="wordmark">Video Compressor Web<span class="dot">.</span></p>
+    <span class="section-title">MOCKUP · 前台</span>
+    <div class="steps">
+      <span class="step active">① 拖放區</span>
+      <span class="step">② 檔案佇列</span>
+      <span class="step">③ 轉檔進度</span>
+      <span class="step">④ 結果</span>
+    </div>
+    <a class="back" href="index.html">← 回總覽</a>
+  </div>
+
+  <div class="app-header">
+    <div class="title">🎬 Video Compressor Web</div>
+    <span class="badge-privacy">🔒 本地處理</span>
+    <span class="sub">影片不會上傳到伺服器</span>
+  </div>
+
+  <div class="main-container">
+    <aside class="sidebar">
+      <h2>輸出設定</h2>
+      <div class="setting-group">
+        <label class="setting-label">輸出格式</label>
+        <div class="fake-select">MP4 (H.264) ▾</div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">編碼器</label>
+        <div class="fake-select">H.264（相容性最佳） ▾</div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">壓縮品質（相對原始位元率）<strong style="float:right">50%</strong></label>
+        <div class="fake-slider"></div>
+        <div class="slider-labels"><span>最小檔案 (10%)</span><span>原始品質 (100%)</span></div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">音訊設定</label>
+        <div class="fake-select">保持原始音訊 ▾</div>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">☐ 調整影像尺寸</label>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">☐ 壓縮至限定大小以下</label>
+      </div>
+      <div class="divider"></div>
+      <div class="setting-group">
+        <label class="setting-label">快速預設</label>
+        <div class="presets">
+          <div class="preset-btn">✨ 高畫質 (75%)</div>
+          <div class="preset-btn active">⚖️ 平衡 (50%)</div>
+          <div class="preset-btn">📦 小檔案 (25%)</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="drop-zone">
+        <div class="drop-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+        </div>
+        <h3>拖放影片檔案到這裡</h3>
+        <p>或點擊下方按鈕選擇檔案</p>
+        <button class="btn btn-primary">📁 選擇檔案</button>
+        <div class="supported-formats">支援格式：MOV, MP4, MPG, WMV, WebM, AVI, MKV, FLV, M4V, 3GP</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    <span>Video Compressor Web v1.0.0</span>｜<span>使用 FFmpeg WASM 技術</span>｜<span>GitHub</span>
+  </footer>
+</body>
+</html>

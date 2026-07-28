@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1360" font-family="ui-sans-serif,system-ui,'Segoe UI',Roboto,'Noto Sans TC',sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7178"/>
+    </marker>
+    <marker id="arrowAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2E4B8F"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="1360" fill="#FBFAF7"/>
+
+  <!-- Wordmark -->
+  <text x="48" y="56" font-family="'Iowan Old Style',Georgia,'Times New Roman',serif" font-size="30" fill="#181B20">Video Compressor Web<tspan fill="#2E4B8F">.</tspan></text>
+  <text x="48" y="82" font-family="ui-monospace,'SF Mono','Cascadia Code',Menlo,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">ARCHITECTURE — mac-video-transfer-web · 純前端 FFmpeg WASM 影片壓縮工具</text>
+  <line x1="48" y1="98" x2="1192" y2="98" stroke="#E7E3DA" stroke-width="1"/>
+
+  <!-- ===================== LAYER 1 ===================== -->
+  <text x="48" y="132" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">① 使用者／瀏覽器 — UI 層（index.html + styles.css，單頁四種畫面狀態）</text>
+  <rect x="40" y="146" width="1160" height="120" rx="10" fill="#FBFAF7" stroke="#E7E3DA"/>
+
+  <g font-size="13" fill="#181B20">
+    <rect x="64" y="170" width="250" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="189" y="198" text-anchor="middle" font-weight="600">拖放區 / 選檔按鈕</text>
+    <text x="189" y="216" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">dropZone（初始狀態）</text>
+
+    <rect x="340" y="170" width="250" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="465" y="198" text-anchor="middle" font-weight="600">檔案佇列 + 設定側欄</text>
+    <text x="465" y="216" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">fileListContainer + sidebar</text>
+
+    <rect x="616" y="170" width="250" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="741" y="198" text-anchor="middle" font-weight="600">轉檔進度面板</text>
+    <text x="741" y="216" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">progressPanel</text>
+
+    <rect x="892" y="170" width="250" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="1017" y="198" text-anchor="middle" font-weight="600">結果面板（下載/預覽）</text>
+    <text x="1017" y="216" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">resultsPanel</text>
+  </g>
+
+  <!-- ===================== LAYER 2 ===================== -->
+  <text x="48" y="310" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">② 應用邏輯層 — app.js（狀態機／事件處理，約 1,120 行、無框架）</text>
+  <rect x="40" y="324" width="1160" height="110" rx="10" fill="#FBFAF7" stroke="#E7E3DA"/>
+  <g font-size="13" fill="#181B20">
+    <rect x="80" y="348" width="320" height="62" rx="8" fill="#EAEEF7" stroke="#2E4B8F"/>
+    <text x="240" y="374" text-anchor="middle" font-weight="600">state 物件</text>
+    <text x="240" y="392" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">files / results / isConverting</text>
+
+    <rect x="454" y="348" width="332" height="62" rx="8" fill="#EAEEF7" stroke="#2E4B8F"/>
+    <text x="620" y="374" text-anchor="middle" font-weight="600">設定運算</text>
+    <text x="620" y="392" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">getCurrentSettings / estimateCompressedSize</text>
+
+    <rect x="840" y="348" width="260" height="62" rx="8" fill="#EAEEF7" stroke="#2E4B8F"/>
+    <text x="970" y="374" text-anchor="middle" font-weight="600">Toast 通知系統</text>
+    <text x="970" y="392" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">showToast()</text>
+  </g>
+
+  <!-- ===================== LAYER 3 (KEYSTONE) ===================== -->
+  <text x="48" y="480" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">③ FFmpeg WASM 執行層 — 本專案的關鍵設計決定 ▸</text>
+  <rect x="40" y="494" width="1160" height="230" rx="10" fill="#FBFAF7" stroke="#E7E3DA"/>
+
+  <rect x="70" y="518" width="230" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+  <text x="185" y="546" text-anchor="middle" font-size="13" font-weight="600" fill="#181B20">ffmpeg/ffmpeg.js</text>
+  <text x="185" y="564" text-anchor="middle" font-size="11" font-family="monospace" fill="#6B7178">FFmpeg WASM 包裝器</text>
+
+  <!-- Keystone box -->
+  <rect x="330" y="512" width="840" height="196" rx="10" fill="#EAEEF7" stroke="#2E4B8F" stroke-width="3"/>
+  <text x="356" y="542" font-size="15" font-weight="700" fill="#2E4B8F">🔑 關鍵設計決定 — 單執行緒 FFmpeg core</text>
+  <text x="356" y="566" font-size="12.5" fill="#181B20">ffmpeg-core.js / ffmpeg-core.wasm 皆為「本地檔案」，經 toBlobURL() 以 Blob URL 載入（避開 CDN CORS 問題）。</text>
+  <text x="356" y="588" font-size="12.5" fill="#181B20">app.js:1068 明確註記：使用單執行緒 core，<tspan font-family="monospace">不需要 SharedArrayBuffer / COOP-COEP header</tspan>。</text>
+  <text x="356" y="618" font-size="12.5" font-weight="600" fill="#1F7A54">→ 影片資料全程留在使用者裝置，完全不上傳到任何伺服器（README 首要賣點：🔒 完全本地處理）。</text>
+  <text x="356" y="640" font-size="12.5" font-weight="600" fill="#1F7A54">→ 可直接部署到任何純靜態主機（GitHub Pages），不需伺服器端設定跨來源隔離 header，零維運成本。</text>
+  <text x="356" y="668" font-size="12.5" fill="#B8860B">代價：放棄多執行緒加速 → 壓縮速度較慢；大檔案（&gt;500MB）可能導致瀏覽器記憶體不足（OOM，非 bug，HANDOFF 已記錄）。</text>
+  <text x="356" y="690" font-size="11.5" font-family="monospace" fill="#6B7178">state=trade-off · WE accept 速度換取「零上傳＋零伺服器設定」</text>
+
+  <!-- ===================== LAYER 4 ===================== -->
+  <text x="48" y="758" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">④ 瀏覽器原生 API</text>
+  <rect x="40" y="772" width="1160" height="120" rx="10" fill="#FBFAF7" stroke="#E7E3DA"/>
+  <g font-size="12.5" fill="#181B20">
+    <rect x="64" y="796" width="256" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="192" y="826" text-anchor="middle" font-weight="600">File API / Drag&amp;Drop</text>
+    <text x="192" y="844" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">fetchFile()</text>
+
+    <rect x="336" y="796" width="256" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="464" y="826" text-anchor="middle" font-weight="600">&lt;video&gt; metadata</text>
+    <text x="464" y="844" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">getVideoInfo() 讀取時長/解析度</text>
+
+    <rect x="608" y="796" width="256" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="736" y="826" text-anchor="middle" font-weight="600">WebAssembly</text>
+    <text x="736" y="844" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">執行環境（相容性檢查必要項）</text>
+
+    <rect x="880" y="796" width="260" height="70" rx="8" fill="#FBFAF7" stroke="#E7E3DA"/>
+    <text x="1010" y="826" text-anchor="middle" font-weight="600">Blob / ObjectURL</text>
+    <text x="1010" y="844" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7178">暫存輸出，供下載／預覽</text>
+  </g>
+
+  <!-- No backend note -->
+  <rect x="40" y="912" width="1160" height="56" rx="8" fill="#FBFAF7" stroke="#B03A2E" stroke-dasharray="5 4"/>
+  <text x="620" y="946" text-anchor="middle" font-size="13" fill="#B03A2E" font-weight="600">✗ 本工具無伺服器、無資料庫、無佇列、無後台管理頁面 — 所有運算皆在使用者瀏覽器分頁內完成</text>
+
+  <!-- ===================== LAYER 5 ===================== -->
+  <text x="48" y="1004" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">⑤ 外部依賴（唯二對外連線，非影片資料）</text>
+  <rect x="40" y="1018" width="1160" height="96" rx="10" fill="#FBFAF7" stroke="#E7E3DA"/>
+  <g font-size="12.5" fill="#181B20">
+    <rect x="64" y="1042" width="380" height="50" rx="8" fill="#FBFAF7" stroke="#B8860B" stroke-dasharray="4 3"/>
+    <text x="254" y="1071" text-anchor="middle" font-weight="600">GitHub Pages（靜態檔案託管）</text>
+
+    <rect x="464" y="1042" width="440" height="50" rx="8" fill="#FBFAF7" stroke="#B8860B" stroke-dasharray="4 3"/>
+    <text x="684" y="1064" text-anchor="middle" font-weight="600">Google Fonts CDN（Inter 字型）</text>
+    <text x="684" y="1082" text-anchor="middle" font-size="11" fill="#B8860B">⚠️ 與「完全本地處理」賣點略有落差 — 未確認是否曾檢討移除</text>
+  </g>
+
+  <!-- ===================== ARROWS (layer to layer) ===================== -->
+  <line x1="620" y1="266" x2="620" y2="324" stroke="#6B7178" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="620" y1="434" x2="620" y2="494" stroke="#6B7178" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="620" y1="724" x2="620" y2="772" stroke="#2E4B8F" stroke-width="2" marker-end="url(#arrowAccent)"/>
+  <line x1="620" y1="892" x2="620" y2="1018" stroke="#6B7178" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+
+  <!-- Legend -->
+  <line x1="48" y1="1148" x2="1192" y2="1148" stroke="#E7E3DA"/>
+  <text x="48" y="1176" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">BUILD-LOG</text>
+  <text x="48" y="1202" font-size="13" fill="#181B20">▸ 進行中／規劃中　　<tspan fill="#1F7A54">✓ 已驗證（本機 smoke test 全綠，2026-07-20）</tspan>　　<tspan fill="#B03A2E">✗ 尚未存在（後台／伺服器／自動化測試）</tspan></text>
+  <text x="48" y="1226" font-size="12" fill="#6B7178">依據：實際讀取 index.html／app.js／styles.css／README.md／HANDOFF.md／AGENTS.md（2026-07-24 盤點）。查無佐證處已標「未確認」。</text>
+
+  <text x="48" y="1264" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1.5" fill="#6B7178">資料主流向</text>
+  <text x="48" y="1288" font-size="12.5" fill="#181B20">使用者選檔 → 瀏覽器記憶體（File/Blob）→ FFmpeg WASM 就地編碼 → 輸出 Blob → 使用者下載</text>
+  <text x="48" y="1308" font-size="12.5" fill="#181B20">（影片位元組本身從未離開分頁，亦無任何上傳／回傳伺服器的網路請求）</text>
+
+  <text x="1192" y="1338" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#6B7178">mac-video-transfer-web · docs/architecture.svg</text>
+</svg>

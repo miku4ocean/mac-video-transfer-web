@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>線框稿：結果面板 — Video Compressor Web</title>
+<style>
+:root{
+  --paper:#FBFAF7; --ink:#181B20; --muted:#6B7178;
+  --line:#E7E3DA; --accent:#2E4B8F; --accent-soft:#EAEEF7;
+  --ok:#1F7A54; --err:#B03A2E; --warn:#B8860B;
+  --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);}
+.meta-bar{ background:var(--paper); border-bottom:1px solid var(--line); padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.wordmark{ font-family:var(--serif); font-size:18px; margin:0; }
+.wordmark .dot{ color:var(--accent); }
+.section-title{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+.steps{ display:flex; gap:6px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+.steps .step{ padding:2px 8px; border:1px solid var(--line); border-radius:999px; }
+.steps .step.active{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); font-weight:600; }
+a.back{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--accent); text-decoration:none; }
+
+.app-header{ height:60px; border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 24px; gap:16px; }
+.app-header .title{ font-family:var(--serif); font-size:20px; display:flex; align-items:center; gap:8px; }
+.badge-privacy{ font-family:var(--mono); font-size:11px; border:1px solid var(--ok); color:var(--ok); border-radius:999px; padding:2px 10px; }
+.app-header .sub{ color:var(--muted); font-size:13px; }
+
+.main-container{ display:flex; min-height:560px; }
+.sidebar{ width:300px; flex:none; border-right:1px solid var(--line); padding:20px; opacity:.5; }
+.sidebar h2{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; }
+
+.content{ flex:1; padding:32px; }
+.panel-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.panel-header h3{ margin:0; font-size:16px; }
+.actions{ display:flex; gap:10px; }
+.btn{ font-family:var(--sans); font-size:13px; border-radius:8px; padding:8px 16px; border:1px solid var(--line); background:var(--paper); }
+.btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.result-item{
+  display:flex; gap:14px; align-items:center; border:1px solid var(--line); border-radius:10px;
+  padding:14px; margin-bottom:10px;
+}
+.result-icon{ width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex:none; }
+.result-icon.success{ background:var(--accent-soft); color:var(--ok); }
+.result-icon.error{ background:#F7EAE8; color:var(--err); }
+.result-info{ flex:1; min-width:0; }
+.result-name{ font-size:13.5px; font-weight:600; margin-bottom:4px; }
+.result-meta{ font-size:11.5px; color:var(--muted); font-family:var(--mono); display:flex; gap:12px; }
+.result-meta .saved{ color:var(--ok); font-weight:600; }
+.result-actions{ display:flex; gap:8px; font-size:13px; }
+.result-actions span{ border:1px solid var(--line); border-radius:6px; padding:5px 9px; }
+
+.summary{
+  margin-top:20px; border:1px solid var(--line); border-radius:8px; padding:12px 16px; font-size:12.5px;
+  display:flex; gap:24px; color:var(--muted);
+}
+.summary b{ color:var(--ink); }
+
+.app-footer{ height:40px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:center; gap:10px; font-size:11.5px; color:var(--muted); }
+@media (prefers-color-scheme: dark){
+  body{ background:#14161A; color:#EDEBE6; }
+  .meta-bar,.app-header,.app-footer,.sidebar,.btn,.result-item,.summary{ background:#1B1E24; border-color:#2B2F37; }
+  .steps .step{ border-color:#2B2F37; }
+  .result-icon.success{ background:#1E2A44; }
+  .result-icon.error{ background:#3A2422; }
+}
+</style>
+</head>
+<body>
+  <div class="meta-bar">
+    <p class="wordmark">Video Compressor Web<span class="dot">.</span></p>
+    <span class="section-title">MOCKUP · 前台</span>
+    <div class="steps">
+      <span class="step">① 拖放區</span>
+      <span class="step">② 檔案佇列</span>
+      <span class="step">③ 轉檔進度</span>
+      <span class="step active">④ 結果</span>
+    </div>
+    <a class="back" href="index.html">← 回總覽</a>
+  </div>
+
+  <div class="app-header">
+    <div class="title">🎬 Video Compressor Web</div>
+    <span class="badge-privacy">🔒 本地處理</span>
+    <span class="sub">影片不會上傳到伺服器</span>
+  </div>
+
+  <div class="main-container">
+    <aside class="sidebar">
+      <h2>輸出設定</h2>
+    </aside>
+
+    <main class="content">
+      <div class="panel-header">
+        <h3>轉檔完成</h3>
+        <div class="actions">
+          <button class="btn">🗑️ 清除全部</button>
+          <button class="btn btn-primary">➕ 新增檔案</button>
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-icon success">✓</div>
+        <div class="result-info">
+          <div class="result-name">holiday-trip.mp4</div>
+          <div class="result-meta"><span>842.3 MB → 320.1 MB</span><span class="saved">節省 62%</span></div>
+        </div>
+        <div class="result-actions"><span>⬇️ 下載</span><span>▶️ 預覽</span><span>🗑️</span></div>
+      </div>
+      <div class="result-item">
+        <div class="result-icon success">✓</div>
+        <div class="result-info">
+          <div class="result-name">product-demo.mp4</div>
+          <div class="result-meta"><span>156.1 MB → 60.9 MB</span><span class="saved">節省 61%</span></div>
+        </div>
+        <div class="result-actions"><span>⬇️ 下載</span><span>▶️ 預覽</span><span>🗑️</span></div>
+      </div>
+      <div class="result-item">
+        <div class="result-icon error">✗</div>
+        <div class="result-info">
+          <div class="result-name">screen-recording.mkv</div>
+          <div class="result-meta">轉檔失敗：記憶體不足（檔案過大）</div>
+        </div>
+        <div class="result-actions"><span>🗑️</span></div>
+      </div>
+
+      <div class="summary">
+        <span>成功 <b>2</b> / 3</span>
+        <span>總共節省 <b>617.4 MB</b></span>
+        <span>輸出檔皆為瀏覽器 Blob，下載後即為本機檔案，重新整理頁面即釋放</span>
+      </div>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    <span>Video Compressor Web v1.0.0</span>｜<span>使用 FFmpeg WASM 技術</span>｜<span>GitHub</span>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,60 @@
+%% mac-video-transfer-web — 架構圖（Mermaid）
+%% 產生依據：實際讀取 index.html / app.js / styles.css / README.md / HANDOFF.md / AGENTS.md
+%% 本專案為純靜態網頁工具，無伺服器、無資料庫、無佇列、無後台。
+flowchart TB
+
+    subgraph L1["① 使用者／瀏覽器 — UI 層（index.html + styles.css，單頁四種畫面狀態）"]
+        U1["拖放區 / 選檔按鈕<br/>dropZone"]
+        U2["檔案佇列 + 設定側欄<br/>fileListContainer + sidebar"]
+        U3["轉檔進度面板<br/>progressPanel"]
+        U4["結果面板（下載/預覽）<br/>resultsPanel"]
+    end
+
+    subgraph L2["② 應用邏輯層 — app.js（狀態機 / 事件處理）"]
+        S1["state 物件<br/>files / results / isConverting"]
+        S2["設定運算<br/>getCurrentSettings / estimateCompressedSize"]
+        S3["Toast 通知系統"]
+    end
+
+    subgraph L3["③ FFmpeg WASM 執行層"]
+        F1["ffmpeg/ffmpeg.js（包裝器）"]
+        KEYSTONE["🔑 關鍵設計決定：\n單執行緒 FFmpeg core\n(ffmpeg-core.js / .wasm，本地檔案載入)\n\n不需要 SharedArrayBuffer / COOP-COEP header\n→ 影片資料全程留在瀏覽器，不上傳\n→ 可直接部署到任何靜態主機（含 GitHub Pages）\n代價：效能較單執行緒慢、大檔(>500MB)可能 OOM"]
+    end
+
+    subgraph L4["④ 瀏覽器原生 API"]
+        B1["File API / Drag&Drop"]
+        B2["&lt;video&gt; metadata 讀取（時長/解析度）"]
+        B3["WebAssembly 執行環境"]
+        B4["Blob / ObjectURL（暫存輸出，供下載與預覽）"]
+    end
+
+    subgraph L5["⑤ 外部依賴（未確認是否有意保留）"]
+        E1["GitHub Pages（靜態檔案託管）"]
+        E2["Google Fonts CDN（Inter 字型）<br/>⚠️ 唯一對外連線，與『完全本地處理』賣點略有落差"]
+    end
+
+    U1 --> S1
+    U2 --> S1
+    U2 --> S2
+    S1 --> S3
+    S1 -->|"開始轉檔"| F1
+    F1 --> KEYSTONE
+    KEYSTONE --> B3
+    F1 --> B1
+    F1 --> B4
+    B2 --> S2
+    B4 --> U4
+    S1 --> U3
+    U4 -.->|"下載/預覽輸出檔"| B4
+
+    L1 -.部署.-> E1
+    L1 -.載入字型.-> E2
+
+    classDef layer fill:#FBFAF7,stroke:#E7E3DA,color:#181B20;
+    classDef node fill:#EAEEF7,stroke:#2E4B8F,color:#181B20;
+    classDef key fill:#EAEEF7,stroke:#2E4B8F,stroke-width:3px,color:#181B20,font-weight:bold;
+    classDef ext fill:#FBFAF7,stroke:#B8860B,color:#181B20,stroke-dasharray: 4 3;
+
+    class U1,U2,U3,U4,S1,S2,S3,F1,B1,B2,B3,B4 node;
+    class KEYSTONE key;
+    class E1,E2 ext;

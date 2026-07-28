@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>線框稿：轉檔進度 — Video Compressor Web</title>
+<style>
+:root{
+  --paper:#FBFAF7; --ink:#181B20; --muted:#6B7178;
+  --line:#E7E3DA; --accent:#2E4B8F; --accent-soft:#EAEEF7;
+  --ok:#1F7A54; --err:#B03A2E; --warn:#B8860B;
+  --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);}
+.meta-bar{ background:var(--paper); border-bottom:1px solid var(--line); padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.wordmark{ font-family:var(--serif); font-size:18px; margin:0; }
+.wordmark .dot{ color:var(--accent); }
+.section-title{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+.steps{ display:flex; gap:6px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+.steps .step{ padding:2px 8px; border:1px solid var(--line); border-radius:999px; }
+.steps .step.active{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); font-weight:600; }
+a.back{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--accent); text-decoration:none; }
+
+.app-header{ height:60px; border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 24px; gap:16px; }
+.app-header .title{ font-family:var(--serif); font-size:20px; display:flex; align-items:center; gap:8px; }
+.badge-privacy{ font-family:var(--mono); font-size:11px; border:1px solid var(--ok); color:var(--ok); border-radius:999px; padding:2px 10px; }
+.app-header .sub{ color:var(--muted); font-size:13px; }
+
+.main-container{ display:flex; min-height:560px; }
+.sidebar{ width:300px; flex:none; border-right:1px solid var(--line); padding:20px; opacity:.5; }
+.sidebar h2{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; }
+.setting-group{ margin-bottom:18px; }
+.setting-label{ display:block; font-size:12.5px; margin-bottom:6px; }
+.fake-select{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px; }
+
+.content{ flex:1; padding:32px; display:flex; justify-content:center; }
+.progress-panel{ width:100%; max-width:640px; margin-top:40px; }
+.panel-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.panel-header h3{ margin:0; font-size:16px; }
+.btn-danger{ font-family:var(--sans); font-size:13px; border-radius:8px; padding:8px 16px; border:1px solid var(--err); color:var(--err); background:var(--paper); }
+.current-file{ font-size:13.5px; margin-bottom:16px; color:var(--ink); }
+.progress-bar-outer{ height:10px; border-radius:6px; background:var(--line); overflow:hidden; margin-bottom:8px; }
+.progress-bar-fill{ height:100%; width:62%; background:var(--accent); }
+.progress-text{ text-align:right; font-family:var(--mono); font-size:12px; color:var(--accent); margin-bottom:20px; }
+.progress-details{ display:flex; gap:28px; font-size:12.5px; }
+.detail-item .label{ color:var(--muted); margin-right:6px; }
+.detail-item .value{ font-family:var(--mono); }
+.detail-item .value.highlight{ color:var(--accent); font-weight:600; }
+.keystone-note{
+  margin-top:32px; border:1px solid var(--accent); background:var(--accent-soft); border-radius:8px;
+  padding:14px 16px; font-size:12.5px; color:var(--ink);
+}
+.keystone-note b{ color:var(--accent); }
+
+.app-footer{ height:40px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:center; gap:10px; font-size:11.5px; color:var(--muted); }
+@media (prefers-color-scheme: dark){
+  body{ background:#14161A; color:#EDEBE6; }
+  .meta-bar,.app-header,.app-footer,.sidebar,.fake-select{ background:#1B1E24; border-color:#2B2F37; }
+  .steps .step{ border-color:#2B2F37; }
+  .keystone-note{ background:#1E2A44; border-color:#5B7BC0; }
+}
+</style>
+</head>
+<body>
+  <div class="meta-bar">
+    <p class="wordmark">Video Compressor Web<span class="dot">.</span></p>
+    <span class="section-title">MOCKUP · 前台</span>
+    <div class="steps">
+      <span class="step">① 拖放區</span>
+      <span class="step">② 檔案佇列</span>
+      <span class="step active">③ 轉檔進度</span>
+      <span class="step">④ 結果</span>
+    </div>
+    <a class="back" href="index.html">← 回總覽</a>
+  </div>
+
+  <div class="app-header">
+    <div class="title">🎬 Video Compressor Web</div>
+    <span class="badge-privacy">🔒 本地處理</span>
+    <span class="sub">影片不會上傳到伺服器</span>
+  </div>
+
+  <div class="main-container">
+    <aside class="sidebar">
+      <h2>輸出設定（轉檔中鎖定）</h2>
+      <div class="setting-group">
+        <label class="setting-label">輸出格式</label>
+        <div class="fake-select">MP4 (H.264) ▾</div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="progress-panel">
+        <div class="panel-header">
+          <h3>轉檔進度</h3>
+          <button class="btn-danger">✖ 取消</button>
+        </div>
+        <div class="current-file">正在處理：holiday-trip.mov (1/3)</div>
+        <div class="progress-bar-outer"><div class="progress-bar-fill"></div></div>
+        <div class="progress-text">62%</div>
+        <div class="progress-details">
+          <div class="detail-item"><span class="label">狀態:</span><span class="value">編碼中...</span></div>
+          <div class="detail-item"><span class="label">已用時間:</span><span class="value">01:24</span></div>
+          <div class="detail-item"><span class="label">預估剩餘:</span><span class="value highlight">00:52</span></div>
+        </div>
+
+        <div class="keystone-note">
+          <b>🔑 全程在此分頁完成：</b> FFmpeg WASM 在瀏覽器內以單執行緒 core 執行編碼，
+          進度條反映的是本機 CPU 運算，不是網路上傳/下載進度——因為影片資料從未離開這台裝置。
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    <span>Video Compressor Web v1.0.0</span>｜<span>使用 FFmpeg WASM 技術</span>｜<span>GitHub</span>
+  </footer>
+</body>
+</html>

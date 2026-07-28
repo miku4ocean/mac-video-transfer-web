@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 總覽 — Video Compressor Web</title>
+<style>
+:root{
+  --paper:#FBFAF7; --ink:#181B20; --muted:#6B7178;
+  --line:#E7E3DA; --accent:#2E4B8F; --accent-soft:#EAEEF7;
+  --ok:#1F7A54; --err:#B03A2E; --warn:#B8860B;
+  --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); padding:40px 24px 80px; }
+.wrap{ max-width:960px; margin:0 auto; }
+.wordmark{ font-family:var(--serif); font-size:30px; margin:0 0 4px; }
+.wordmark .dot{ color:var(--accent); }
+.subtitle{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 28px; }
+.badge{
+  display:inline-block; font-family:var(--mono); font-size:11px; border:1px solid var(--line); color:var(--muted);
+  border-radius:999px; padding:3px 11px; margin-bottom:24px;
+}
+.badge.err{ border-color:var(--err); color:var(--err); }
+
+.section-title{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:32px 0 12px; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+.card{
+  display:block; text-decoration:none; color:var(--ink); border:1px solid var(--line); border-radius:10px;
+  padding:18px; background:var(--paper); transition:border-color .15s;
+}
+.card:hover{ border-color:var(--accent); }
+.card .step{ font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:6px; }
+.card h3{ margin:0 0 6px; font-size:15px; }
+.card p{ margin:0; font-size:12.5px; color:var(--muted); line-height:1.5; }
+
+.note-card{
+  border:1px solid var(--err); background:#FBFAF7; border-radius:10px; padding:16px 18px; margin-top:32px;
+}
+.note-card h3{ margin:0 0 8px; font-size:14px; color:var(--err); }
+.note-card p{ margin:0; font-size:12.5px; line-height:1.6; }
+
+footer{ margin-top:40px; font-family:var(--mono); font-size:11px; color:var(--muted); border-top:1px solid var(--line); padding-top:16px; }
+@media (prefers-color-scheme: dark){
+  body{ background:#14161A; color:#EDEBE6; }
+  .card,.badge,.note-card{ background:#1B1E24; border-color:#2B2F37; }
+  .subtitle,footer{ color:#9AA0AA; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="wordmark">Video Compressor Web<span class="dot">.</span></h1>
+  <p class="subtitle">Mockup Index — mac-video-transfer-web</p>
+  <span class="badge">單頁應用（SPA）· 4 種畫面狀態 · 線框稿依真實 index.html/app.js 還原</span>
+
+  <p class="section-title">前台 — 唯一頁面的四種狀態（依 index.html 的 hidden/show 切換邏輯拆出）</p>
+  <div class="grid">
+    <a class="card" href="front-empty.html">
+      <div class="step">① 初始狀態</div>
+      <h3>front-empty.html</h3>
+      <p>拖放區 + 選檔按鈕。對應 index.html #dropZone，網站進入時的預設畫面。</p>
+    </a>
+    <a class="card" href="front-queue.html">
+      <div class="step">② 檔案佇列</div>
+      <h3>front-queue.html</h3>
+      <p>已選檔案清單 + 側欄輸出設定 + 開始轉檔按鈕。對應 #fileListContainer。</p>
+    </a>
+    <a class="card" href="front-progress.html">
+      <div class="step">③ 轉檔進度</div>
+      <h3>front-progress.html</h3>
+      <p>進度條、已用/預估剩餘時間、取消按鈕。對應 #progressPanel。</p>
+    </a>
+    <a class="card" href="front-results.html">
+      <div class="step">④ 結果面板</div>
+      <h3>front-results.html</h3>
+      <p>成功/失敗結果卡片、下載與預覽動作。對應 #resultsPanel。</p>
+    </a>
+  </div>
+
+  <div class="note-card">
+    <h3>✗ 後台 — 不存在</h3>
+    <p>已實際讀取專案全部檔案（index.html、app.js、styles.css、README.md、HANDOFF.md、AGENTS.md、CLAUDE.md）：
+    本專案是純靜態前端工具，無伺服器、無資料庫、無管理後台、無使用者帳號系統。因此本 mockup 集不含任何
+    「admin-*」頁面 — 這是根據實際架構的誠實結果，而非遺漏。</p>
+  </div>
+
+  <footer>
+    依實際程式碼與文件產出（2026-07-24）。四個前台狀態皆為 index.html 中已實作的真實 UI 分支，非規劃推導。
+  </footer>
+</div>
+</body>
+</html>
