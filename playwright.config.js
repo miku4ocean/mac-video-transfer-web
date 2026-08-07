@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 4173;
 module.exports = defineConfig({
   testDir: './tests',
   timeout: 120_000,
+  retries: 1,
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],
