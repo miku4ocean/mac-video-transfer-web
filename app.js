@@ -676,6 +676,7 @@ async function convertVideo(fileItem, outputFormat, settings) {
 // ========================================
 async function startConversion() {
     if (state.files.length === 0) return;
+    if (state.isConverting) return; // Prevent double-submit
 
     // Initialize FFmpeg if not ready
     if (!ffmpegReady) {
