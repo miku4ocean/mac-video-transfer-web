@@ -1013,6 +1013,7 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .footer-content {
