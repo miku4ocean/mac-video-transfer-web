@@ -405,6 +405,7 @@ async function addFiles(fileList) {
     }
 
     const validExtensions = ['mov', 'mp4', 'mpg', 'mpeg', 'wmv', 'webm', 'avi', 'mkv', 'flv', 'm4v', '3gp'];
+    const LARGE_FILE_THRESHOLD = 500 * 1024 * 1024; // 500 MB
 
     for (const file of fileList) {
         const ext = getFileExtension(file.name);
@@ -412,6 +413,11 @@ async function addFiles(fileList) {
         if (!validExtensions.includes(ext)) {
             showToast(`不支援的格式: ${file.name}`, 'warning');
             continue;
+        }
+
+        // Warn about large files that may cause browser OOM
+        if (file.size > LARGE_FILE_THRESHOLD) {
+            showToast(`${file.name} 超過 500MB，可能導致瀏覽器記憶體不足`, 'warning');
         }
 
         // Check if already added
