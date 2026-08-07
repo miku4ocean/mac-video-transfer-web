@@ -875,6 +875,14 @@ function setupEventListeners() {
         elements.fileInput.click();
     });
 
+    // Keyboard accessibility for drop zone (Enter/Space triggers file picker)
+    elements.dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            elements.fileInput.click();
+        }
+    });
+
     // File input change
     elements.fileInput.addEventListener('change', async (e) => {
         console.log('File input changed', e.target.files);

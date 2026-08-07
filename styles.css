@@ -478,9 +478,15 @@ body {
 }
 
 .drop-zone:hover,
+.drop-zone:focus-visible,
 .drop-zone.drag-over {
     border-color: var(--accent-primary);
     background: rgba(90, 106, 122, 0.03);
+}
+
+.drop-zone:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
 }
 
 .drop-zone.drag-over {
