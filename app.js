@@ -874,8 +874,14 @@ function startNewConversion() {
 // ========================================
 function setupEventListeners() {
     // File selection button
-    elements.selectFilesBtn.addEventListener('click', () => {
+    elements.selectFilesBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent double-trigger from drop zone click
         console.log('Select files button clicked');
+        elements.fileInput.click();
+    });
+
+    // Click anywhere on drop zone to open file picker
+    elements.dropZone.addEventListener('click', () => {
         elements.fileInput.click();
     });
 
