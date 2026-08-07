@@ -640,7 +640,20 @@ async function convertVideo(fileItem, outputFormat, settings) {
 
     // Read output file
     elements.progressStatus.textContent = '處理輸出檔案...';
-    const outputData = await ffmpeg.readFile(outputFileName);
+    let outputData;
+    try {
+        outputData = await ffmpeg.readFile(outputFileName);
+    } catch (readErr) {
+        // Clean up input file before throwing
+        try { await ffmpeg.deleteFile(inputFileName); } catch (_) {}
+        throw new Error('編碼失敗：FFmpeg 未產生輸出檔案');
+    }
+
+    if (!outputData || outputData.length === 0) {
+        try { await ffmpeg.deleteFile(inputFileName); } catch (_) {}
+        try { await ffmpeg.deleteFile(outputFileName); } catch (_) {}
+        throw new Error('編碼失敗：輸出檔案為空');
+    }
 
     // Clean up virtual filesystem
     await ffmpeg.deleteFile(inputFileName);
