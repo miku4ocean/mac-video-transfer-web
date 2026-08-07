@@ -917,6 +917,15 @@ function setupEventListeners() {
         }
     });
 
+    // Clean up Blob URLs on page unload to prevent memory leaks
+    window.addEventListener('beforeunload', () => {
+        state.results.forEach(result => {
+            if (result.url) {
+                URL.revokeObjectURL(result.url);
+            }
+        });
+    });
+
     // Global drag and drop
     document.addEventListener('dragover', (e) => {
         e.preventDefault();
