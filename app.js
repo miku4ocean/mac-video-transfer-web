@@ -92,6 +92,7 @@ function initializeElements() {
         targetSizeUnit: document.getElementById('targetSizeUnit'),
 
         // Progress
+        queueProgress: document.getElementById('queueProgress'),
         progressPanel: document.getElementById('progressPanel'),
         currentFileInfo: document.getElementById('currentFileInfo'),
         progressBar: document.getElementById('progressBar'),
@@ -703,6 +704,9 @@ async function startConversion() {
 
         state.currentFileIndex = i;
         const fileItem = state.files[i];
+
+        // Update queue progress badge
+        elements.queueProgress.textContent = `${i + 1} / ${state.files.length}`;
 
         // Reset progress UI
         elements.currentFileInfo.innerHTML = `

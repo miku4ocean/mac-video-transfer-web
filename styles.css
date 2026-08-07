@@ -781,6 +781,18 @@ body {
 .progress-header h3 {
     font-size: 16px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.queue-progress {
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--accent-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
 }
 
 .current-file {
