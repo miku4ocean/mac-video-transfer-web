@@ -338,8 +338,15 @@ async function getVideoInfo(file) {
         const video = document.createElement('video');
         video.preload = 'metadata';
 
+        // Defer revoke to the next tick: the browser may still have an in-flight
+        // buffered fetch against this blob URL right after 'loadedmetadata' fires
+        // (more likely on larger/real-world files). Revoking synchronously races
+        // that fetch and throws spurious net::ERR_ABORTED / ERR_FILE_NOT_FOUND
+        // console errors even though metadata was read successfully.
+        const revokeSoon = (url) => setTimeout(() => URL.revokeObjectURL(url), 0);
+
         video.onloadedmetadata = () => {
-            URL.revokeObjectURL(video.src);
+            revokeSoon(video.src);
             resolve({
                 duration: video.duration,
                 width: video.videoWidth,
@@ -349,7 +356,7 @@ async function getVideoInfo(file) {
         };
 
         video.onerror = () => {
-            URL.revokeObjectURL(video.src);
+            revokeSoon(video.src);
             // Return default values if we can't get metadata
             resolve({
                 duration: 0,
@@ -370,6 +377,9 @@ async function generateThumbnail(file) {
         video.preload = 'metadata';
         video.muted = true;
 
+        // See comment in getVideoInfo() above re: deferred revoke.
+        const revokeSoon = (url) => setTimeout(() => URL.revokeObjectURL(url), 0);
+
         video.onloadeddata = () => {
             video.currentTime = Math.min(1, video.duration / 4);
         };
@@ -380,12 +390,12 @@ async function generateThumbnail(file) {
             canvas.height = 80;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            URL.revokeObjectURL(video.src);
+            revokeSoon(video.src);
             resolve(canvas.toDataURL('image/jpeg', 0.7));
         };
 
         video.onerror = () => {
-            URL.revokeObjectURL(video.src);
+            revokeSoon(video.src);
             resolve(null);
         };
 
