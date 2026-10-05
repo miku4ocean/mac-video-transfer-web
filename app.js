@@ -25,6 +25,26 @@ async function toBlobURL(url, mimeType) {
     return URL.createObjectURL(blob);
 }
 
+// FFmpeg WASM（~32MB）：Cloudflare Pages 單檔上限 25MiB，部署時由 scripts/deploy.sh
+// 切成多個 .bin 分片並在 index.html 注入 meta；有 wasm-parts meta 就抓分片合併，否則（GitHub Pages、
+// 本機）照舊抓完整的 ffmpeg-core.wasm。
+async function wasmBlobURL() {
+    // 部署腳本會在 .deploy/index.html 注入 <meta name="wasm-parts" content="a.bin,b.bin">；
+    // 沒有該 meta（GitHub Pages、本機）就直接抓完整檔，不多發任何探測請求。
+    const meta = document.querySelector('meta[name="wasm-parts"]');
+    const parts = meta ? meta.content.split(',').map(s => s.trim()).filter(Boolean) : [];
+    if (parts.length) {
+        const blobs = [];
+        for (const name of parts) {
+            const pr = await fetch('./ffmpeg/' + name);
+            if (!pr.ok) throw new Error('wasm part ' + name + ' HTTP ' + pr.status);
+            blobs.push(await pr.blob());
+        }
+        return URL.createObjectURL(new Blob(blobs, { type: 'application/wasm' }));
+    }
+    return toBlobURL('./ffmpeg/ffmpeg-core.wasm', 'application/wasm');
+}
+
 // ========================================
 // State Management
 // ========================================
@@ -254,7 +274,18 @@ function showLoading(show) {
 // ========================================
 // FFmpeg Initialization
 // ========================================
-async function initFFmpeg() {
+let ffmpegInitPromise = null;
+function initFFmpeg() {
+    // 同一時間只跑一次載入：背景預載與使用者按「開始轉檔」可能同時呼叫，
+    // 先前會各建一個 FFmpeg 實例，後建的覆蓋全域 ffmpeg 導致「ffmpeg is not loaded」。
+    if (ffmpegReady) return Promise.resolve(true);
+    if (!ffmpegInitPromise) {
+        ffmpegInitPromise = initFFmpegOnce().finally(() => { ffmpegInitPromise = null; });
+    }
+    return ffmpegInitPromise;
+}
+
+async function initFFmpegOnce() {
     if (ffmpegReady) return true;
 
     // Check if FFmpegWASM library is available
@@ -309,7 +340,7 @@ async function initFFmpeg() {
         // Files are stored in the ffmpeg folder
         await ffmpeg.load({
             coreURL: await toBlobURL('./ffmpeg/ffmpeg-core.js', 'text/javascript'),
-            wasmURL: await toBlobURL('./ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
+            wasmURL: await wasmBlobURL(),
         });
 
         elements.ffmpegLoadingProgress.style.width = '100%';

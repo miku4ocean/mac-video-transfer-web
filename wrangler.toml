@@ -1,0 +1,5 @@
+# Cloudflare Pages 部署設定（mac-video-transfer-web，純靜態站，零建置步驟）
+# 上傳目錄 .deploy/ 由 scripts/deploy.sh 白名單同步產生；GitHub Pages 版仍照舊（main 分支 /）。
+name = "mac-video-transfer-web"
+pages_build_output_dir = ".deploy"
+compatibility_date = "2026-07-27"

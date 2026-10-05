@@ -1,5 +1,13 @@
 # HANDOFF — mac-video-transfer-web
-更新：2026-08-17／claude
+更新：2026-10-05／claude
+
+## 2026-10-05 Cloudflare Pages 版（GitHub Pages 保留）
+- 網址：**https://mac-video-transfer-web.pages.dev/**（專案名 mac-video-transfer-web）。部署：`bash scripts/deploy.sh`（白名單到 `.deploy/`）。專案建立一次性：`npx wrangler pages project create mac-video-transfer-web --production-branch main --force`。
+- **WASM 分片**：ffmpeg-core.wasm 約 32MB，超過 Pages 單檔 25MiB 上限。deploy.sh 用 `split` 切 20MB 分片（.bin），並在 `.deploy/index.html` 注入 `<meta name="wasm-parts">`；`app.js` 的 `wasmBlobURL()` 見到 meta 就抓分片合併，沒有（GitHub Pages／本機／測試）就抓完整檔，無額外探測請求。
+- `_headers` 設 COOP/COEP（crossOriginIsolated=true，實測不影響運作；單執行緒核心本來不需要，保留以便日後換多執行緒核心）。
+- **順手修真 bug**：`initFFmpeg()` 背景預載與「開始轉檔」同時呼叫會各建一個 FFmpeg 實例，後者覆蓋全域 → 「ffmpeg is not loaded」（正式站桌機／手機約一半機率重現）。改為共用同一個 Promise。
+- 實測（正式網址，桌機／手機）：3 秒 testsrc mp4 上傳→壓縮→下載，ffprobe 可讀（h264 640x360 3.0s），約 2 秒；0 console error；無水平捲動。既有 11 測試全綠（前 11/11，後 11/11）。
+
 
 ## 目前目標
 提供跨平台網頁版影片壓縮工具（FFmpeg WASM），對應 mac-video-transfer 的網頁替代方案。

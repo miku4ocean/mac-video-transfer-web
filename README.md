@@ -17,6 +17,8 @@
 
 直接訪問：[https://miku4ocean.github.io/mac-video-transfer-web](https://miku4ocean.github.io/mac-video-transfer-web)
 
+Cloudflare Pages 版：[https://mac-video-transfer-web.pages.dev/](https://mac-video-transfer-web.pages.dev/)
+
 ### 本地運行
 
 由於瀏覽器安全限制，需要使用 HTTP 伺服器：
