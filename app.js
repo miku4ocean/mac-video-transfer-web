@@ -333,6 +333,17 @@ async function initFFmpeg() {
 // ========================================
 // Video Info Extraction
 // ========================================
+// Detach the probe <video> from its blob URL (aborting any in-flight media fetch)
+// before revoking; revoking while the fetch is still running makes Chrome log
+// net::ERR_FILE_NOT_FOUND intermittently. Revoke is deferred a bit longer for safety.
+function releaseProbeVideo(video, url) {
+    try {
+        video.removeAttribute('src');
+        video.load();
+    } catch (e) { /* ignore */ }
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 async function getVideoInfo(file) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
@@ -343,7 +354,7 @@ async function getVideoInfo(file) {
         // (more likely on larger/real-world files). Revoking synchronously races
         // that fetch and throws spurious net::ERR_ABORTED / ERR_FILE_NOT_FOUND
         // console errors even though metadata was read successfully.
-        const revokeSoon = (url) => setTimeout(() => URL.revokeObjectURL(url), 0);
+        const revokeSoon = (url) => releaseProbeVideo(video, url);
 
         video.onloadedmetadata = () => {
             revokeSoon(video.src);
@@ -378,7 +389,7 @@ async function generateThumbnail(file) {
         video.muted = true;
 
         // See comment in getVideoInfo() above re: deferred revoke.
-        const revokeSoon = (url) => setTimeout(() => URL.revokeObjectURL(url), 0);
+        const revokeSoon = (url) => releaseProbeVideo(video, url);
 
         video.onloadeddata = () => {
             video.currentTime = Math.min(1, video.duration / 4);
