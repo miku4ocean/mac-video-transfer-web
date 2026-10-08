@@ -59,7 +59,7 @@
 
     /* Header & Footer */
     --header-height: 64px;
-    --footer-height: 40px;
+    --footer-height: 44px;
 
     /* Sidebar */
     --sidebar-width: 300px;
@@ -1496,4 +1496,13 @@ input[type="checkbox"]:focus-visible + .checkbox-custom {
     .drop-zone { min-height: 0; flex: none; }
     .drop-icon svg { width: 48px; height: 48px; }
     .content { overflow-y: auto; }
+}
+
+/* 頁尾連結觸控區 ≥44px */
+.footer-content a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; justify-content: center; padding: 0 8px; }
+/* 手機：提示訊息改到頂端、不遮住下方設定區 */
+@media (max-width: 900px) {
+    .toast-container { top: 8px; bottom: auto; left: 8px; right: 8px; }
+    .toast { max-width: 100%; padding: 8px 12px; }
+    .toast:not(:last-child) { display: none; } /* 只顯示最新一則，避免堆疊遮住操作區 */
 }

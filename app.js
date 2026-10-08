@@ -28,6 +28,10 @@ async function toBlobURL(url, mimeType) {
 // FFmpeg WASM（~32MB）：Cloudflare Pages 單檔上限 25MiB，部署時由 scripts/deploy.sh
 // 切成多個 .bin 分片並在 index.html 注入 meta；有 wasm-parts meta 就抓分片合併，否則（GitHub Pages、
 // 本機）照舊抓完整的 ffmpeg-core.wasm。
+function stripBidi(v) {
+    return String(v).replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '');
+}
+
 function escapeHtml(v) {
     return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -50,6 +54,7 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024; // 瀏覽器記憶體上限，超
 async function looksLikeVideo(file) {
     try {
         const b = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+        const b188 = file.size >= 189 ? new Uint8Array(await file.slice(188, 189).arrayBuffer())[0] : -1;
         const asc = (o, t) => [...t].every((c, i) => b[o + i] === c.charCodeAt(0));
         if (asc(4, 'ftyp') || asc(4, 'moov') || asc(4, 'mdat') || asc(4, 'free') || asc(4, 'wide') || asc(4, 'skip') || asc(4, 'pnot')) return true; // MP4/MOV/M4V/3GP
         if (b[0] === 0x1A && b[1] === 0x45 && b[2] === 0xDF && b[3] === 0xA3) return true; // WebM/MKV
@@ -57,7 +62,7 @@ async function looksLikeVideo(file) {
         if (asc(0, 'FLV')) return true; // FLV
         if (b[0] === 0 && b[1] === 0 && b[2] === 1 && (b[3] === 0xBA || b[3] === 0xB3)) return true; // MPEG PS/ES
         if (b[0] === 0x30 && b[1] === 0x26 && b[2] === 0xB2 && b[3] === 0x75) return true; // WMV/ASF
-        if (b[0] === 0x47) return true; // MPEG-TS
+        if (file.size >= 189 && b[0] === 0x47 && b188 === 0x47) return true; // MPEG-TS（第 0 與第 188 byte 皆為同步位元組）
         return false;
     } catch (_) { return false; }
 }
@@ -88,11 +93,11 @@ async function wasmBlobURL() {
         // 合併後驗證大小與 SHA-256（deploy.sh 於建置時寫入 wasm-size / wasm-sha256）
         const sizeMeta = document.querySelector('meta[name="wasm-size"]');
         const hashMeta = document.querySelector('meta[name="wasm-sha256"]');
-        if (sizeMeta && merged.size !== Number(sizeMeta.content)) throw new Error('wasm size mismatch');
+        if (sizeMeta && merged.size !== Number(sizeMeta.content)) throw new Error('轉檔元件下載不完整，請重新整理頁面再試');
         if (hashMeta && window.crypto && crypto.subtle) {
             const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', await merged.arrayBuffer()));
             const hex = [...digest].map(x => x.toString(16).padStart(2, '0')).join('');
-            if (hex !== hashMeta.content) throw new Error('wasm hash mismatch');
+            if (hex !== hashMeta.content) throw new Error('轉檔元件下載不完整，請重新整理頁面再試');
         }
         return URL.createObjectURL(merged);
     }
@@ -317,7 +322,8 @@ function estimateCompressedSize(originalSize, videoWidth, videoHeight, settings)
     }
 
     const estimatedSize = originalSize * qualityFactor * resizeFactor * audioFactor;
-    return Math.max(estimatedSize, originalSize * 0.05);
+    // 估算偏樂觀（實際編碼結果與內容相關），保守上調 15% 並以原檔大小為上限
+    return Math.min(originalSize, Math.max(estimatedSize * 1.15, originalSize * 0.05));
 }
 
 function showLoading(show) {
@@ -565,13 +571,13 @@ async function addFiles(fileList) {
 
             state.files.push({
                 file: file,
-                name: file.name,
+                name: stripBidi(file.name),
                 extension: ext,
                 info: info,
                 thumbnail: thumbnail
             });
 
-            showToast(`已加入: ${file.name}`, 'success');
+            showToast(`已加入: ${stripBidi(file.name)}`, 'success');
         } catch (error) {
             console.error('Error getting video info:', error);
             showToast(`無法讀取檔案: ${file.name}`, 'error');
@@ -638,14 +644,14 @@ function updateFileList() {
     <div class="file-item" data-index="${index}">
       ${thumbnailHtml}
       <div class="file-info">
-        <div class="file-name">${escapeHtml(item.name)}</div>
+        <div class="file-name">${escapeHtml(stripBidi(item.name))}</div>
         <div class="file-meta">
           <span>📐 ${videoWidth}×${videoHeight}</span>
           <span>📦 ${formatBytes(item.info.size)}</span>
           <span>⏱️ ${formatDuration(item.info.duration)}</span>
         </div>
         <div class="file-estimate">
-          <span class="estimate-label">預估壓縮後:</span>
+          <span class="estimate-label">預估壓縮後（僅供參考）:</span>
           <span class="estimate-value">${formatBytes(estimatedSize)}</span>
           <span class="estimate-percent">(節省 ${compressionPercent}%)</span>
         </div>
