@@ -67,7 +67,7 @@ test.describe('mac-video-transfer-web — WASM 降級行為', () => {
     const errorToast = page.locator('.toast.error').last();
     await expect(errorToast).toBeVisible({ timeout: 20_000 });
     const toastText = await errorToast.locator('.toast-message').textContent();
-    expect(toastText).toMatch(/FFmpeg|載入失敗/);
+    expect(toastText).toMatch(/載入失敗|尚未載入/);
 
     // 頁面沒有因此整個崩潰
     expect(pageErrors, `pageerror: ${JSON.stringify(pageErrors)}`).toEqual([]);

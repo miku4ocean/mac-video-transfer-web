@@ -1442,3 +1442,58 @@ body {
         justify-content: center;
     }
 }
+/* ========================================
+   觸控目標 ≥44px、焦點樣式、首次使用步驟
+   ======================================== */
+.btn, .btn-sm { min-height: 44px; }
+.file-action-btn { width: 44px; height: 44px; }
+.preset-btn { min-height: 44px; }
+.select-input, .number-input { min-height: 44px; }
+.btn:focus-visible, .file-action-btn:focus-visible, .preset-btn:focus-visible,
+.select-input:focus-visible, .number-input:focus-visible, .slider:focus-visible,
+input[type="checkbox"]:focus-visible + .checkbox-custom {
+    outline: 3px solid var(--accent-secondary);
+    outline-offset: 2px;
+}
+.quick-steps {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 16px;
+    margin: 12px 0 16px;
+    padding: 0;
+    counter-reset: step;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+.quick-steps li::before {
+    counter-increment: step;
+    content: counter(step);
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 50%;
+    background: var(--accent-secondary);
+    color: #fff;
+    font-size: 12px;
+}
+.file-name, .result-name { overflow-wrap: anywhere; }
+
+/* 手機：先看到選檔區（主要動作），設定放下方 */
+@media (max-width: 900px) {
+    .content { order: -1; min-height: 0; }
+    .sidebar { flex-shrink: 0; }
+}
+@media (max-width: 600px) {
+    .footer-content { font-size: 11px; }
+    .footer-content > :nth-child(3), .footer-content > :nth-child(4) { display: none; }
+}
+@media (max-width: 600px) {
+    .drop-zone { min-height: 0; flex: none; }
+    .drop-icon svg { width: 48px; height: 48px; }
+    .content { overflow-y: auto; }
+}

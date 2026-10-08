@@ -1,8 +1,15 @@
 # HANDOFF — mac-video-transfer-web
+
+## 部署（2026-10-08 b3 批）
+- 專案名 **mac-video-transfer-miku** → https://mac-video-transfer-miku.pages.dev（舊名 mac-video-transfer-web 已棄用）。
+- `DRY_RUN=1 bash scripts/deploy.sh` 只建 `.deploy/` 並過守門；正式部署 `bash scripts/deploy.sh`（由驗收者執行）。
+- deploy.sh：rsync 排除 .wrangler／.dev.vars*／wrangler.*／tests／*.md／package*.json；守門（隱藏檔、sqlite、env、pem、key、>25MiB 即 exit 1）；WASM 分片並寫入 wasm-size／wasm-sha256 meta，app.js 合併後驗證。
+- `_headers`：CSP（script 'self' blob: wasm-unsafe-eval）、COOP/COEP/CORP、nosniff、X-Frame-Options、Referrer-Policy、Permissions-Policy。
+- 安全：檔名一律 escapeHtml／textContent；下載檔名 sanitizeFileName；檔頭魔術位元組檢查（偽裝成影片的檔案被拒）；>2GB 拒絕；錯誤訊息去技術術語。getVideoInfo／generateThumbnail 加 4 秒保險逾時（新版 headless Chromium 不觸發事件會整個卡住）。
 更新：2026-10-05／claude
 
 ## 2026-10-05 Cloudflare Pages 版（GitHub Pages 保留）
-- 網址：**https://mac-video-transfer-web.pages.dev/**（專案名 mac-video-transfer-web）。部署：`bash scripts/deploy.sh`（白名單到 `.deploy/`）。專案建立一次性：`npx wrangler pages project create mac-video-transfer-web --production-branch main --force`。
+- 網址：**https://mac-video-transfer-miku.pages.dev/**（專案名 mac-video-transfer-web）。部署：`bash scripts/deploy.sh`（白名單到 `.deploy/`）。專案建立一次性：`npx wrangler pages project create mac-video-transfer-web --production-branch main --force`。
 - **WASM 分片**：ffmpeg-core.wasm 約 32MB，超過 Pages 單檔 25MiB 上限。deploy.sh 用 `split` 切 20MB 分片（.bin），並在 `.deploy/index.html` 注入 `<meta name="wasm-parts">`；`app.js` 的 `wasmBlobURL()` 見到 meta 就抓分片合併，沒有（GitHub Pages／本機／測試）就抓完整檔，無額外探測請求。
 - `_headers` 設 COOP/COEP（crossOriginIsolated=true，實測不影響運作；單執行緒核心本來不需要，保留以便日後換多執行緒核心）。
 - **順手修真 bug**：`initFFmpeg()` 背景預載與「開始轉檔」同時呼叫會各建一個 FFmpeg 實例，後者覆蓋全域 → 「ffmpeg is not loaded」（正式站桌機／手機約一半機率重現）。改為共用同一個 Promise。

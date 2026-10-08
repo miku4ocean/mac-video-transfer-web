@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="線上影片壓縮工具 - 使用瀏覽器端技術壓縮影片，無需上傳到伺服器，完全在本地處理">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="theme-color" content="#1E3A5F">
     <meta property="og:title" content="Video Compressor Web - 線上影片壓縮工具">
     <meta property="og:description" content="完全在瀏覽器端運行的影片壓縮工具，資料不會上傳到伺服器。支援 MP4、MOV、AVI、MKV 等格式。">
@@ -176,7 +177,8 @@
                         </svg>
                     </div>
                     <h3>拖放影片檔案到這裡</h3>
-                    <p>或點擊下方按鈕選擇檔案</p>
+                    <p>或點擊下方按鈕選擇檔案。影片只在你的瀏覽器內壓縮，不會上傳。</p>
+                    <ol class="quick-steps" aria-label="使用步驟"><li>選擇影片</li><li>調整畫質（預設已可用）</li><li>按「開始轉檔」並下載</li></ol>
                     <button class="btn btn-primary" id="selectFilesBtn">
                         <span class="btn-icon">📁</span>
                         選擇檔案
@@ -191,7 +193,7 @@
             <!-- Loading FFmpeg Overlay -->
             <div class="loading-overlay hidden" id="ffmpegLoadingOverlay">
                 <div class="loading-spinner"></div>
-                <p id="ffmpegLoadingText">正在載入 FFmpeg 核心...</p>
+                <p id="ffmpegLoadingText">正在載入轉檔元件（首次約需數秒）...</p>
                 <div class="loading-progress">
                     <div class="loading-progress-bar" id="ffmpegLoadingProgress"></div>
                 </div>
@@ -284,9 +286,9 @@
         <div class="footer-content">
             <span>Video Compressor Web v1.0.0</span>
             <span class="footer-divider">|</span>
-            <span>使用 FFmpeg WASM 技術</span>
+            <span>影片完全在瀏覽器內處理</span>
             <span class="footer-divider">|</span>
-            <a href="https://github.com/miku4ocean/mac-video-transfer-web" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/miku4ocean/mac-video-transfer-web" target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
     </footer>
 

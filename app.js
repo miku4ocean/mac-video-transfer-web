@@ -28,6 +28,50 @@ async function toBlobURL(url, mimeType) {
 // FFmpeg WASM（~32MB）：Cloudflare Pages 單檔上限 25MiB，部署時由 scripts/deploy.sh
 // 切成多個 .bin 分片並在 index.html 注入 meta；有 wasm-parts meta 就抓分片合併，否則（GitHub Pages、
 // 本機）照舊抓完整的 ffmpeg-core.wasm。
+function escapeHtml(v) {
+    return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// 下載檔名淨化：去除路徑分隔、控制字元、Windows 保留字元與 bidi 控制字元，限制長度
+function sanitizeFileName(name) {
+    let n = String(name).replace(/[\u0000-\u001f\u007f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+        .replace(/[\\/:*?"<>|]/g, '_').replace(/^[.\-]+/, '').trim();
+    if (n.length > 120) {
+        const m = n.match(/\.[A-Za-z0-9]{1,5}$/);
+        const ext = m ? m[0] : '';
+        n = n.slice(0, 120 - ext.length) + ext;
+    }
+    return n || 'video';
+}
+
+const MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024; // 瀏覽器記憶體上限，超過 2GB 直接拒絕
+
+// 以檔頭魔術位元組粗略確認真的是影片容器（副檔名可偽造）
+async function looksLikeVideo(file) {
+    try {
+        const b = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+        const asc = (o, t) => [...t].every((c, i) => b[o + i] === c.charCodeAt(0));
+        if (asc(4, 'ftyp') || asc(4, 'moov') || asc(4, 'mdat') || asc(4, 'free') || asc(4, 'wide') || asc(4, 'skip') || asc(4, 'pnot')) return true; // MP4/MOV/M4V/3GP
+        if (b[0] === 0x1A && b[1] === 0x45 && b[2] === 0xDF && b[3] === 0xA3) return true; // WebM/MKV
+        if (asc(0, 'RIFF') && asc(8, 'AVI ')) return true; // AVI
+        if (asc(0, 'FLV')) return true; // FLV
+        if (b[0] === 0 && b[1] === 0 && b[2] === 1 && (b[3] === 0xBA || b[3] === 0xB3)) return true; // MPEG PS/ES
+        if (b[0] === 0x30 && b[1] === 0x26 && b[2] === 0xB2 && b[3] === 0x75) return true; // WMV/ASF
+        if (b[0] === 0x47) return true; // MPEG-TS
+        return false;
+    } catch (_) { return false; }
+}
+
+// 去除傳給使用者看的錯誤訊息中的技術細節
+function friendlyError(err) {
+    const m = String((err && err.message) || err || '');
+    if (/[\u4e00-\u9fff]/.test(m)) return m.replace(/FFmpeg\s*/g, '');
+    if (/memory|alloc|OOM|out of bounds/i.test(m)) return '記憶體不足，請改用較小的檔案或降低畫質後再試';
+    if (/Invalid data|moov atom|could not find codec|Invalid argument|Error splitting/i.test(m)) return '無法解析這個影片，檔案可能已損毀或格式不支援';
+    if (/abort|terminate|cancel/i.test(m)) return '轉檔已中止';
+    return '轉檔時發生問題，請換一個檔案或調整設定後再試';
+}
+
 async function wasmBlobURL() {
     // 部署腳本會在 .deploy/index.html 注入 <meta name="wasm-parts" content="a.bin,b.bin">；
     // 沒有該 meta（GitHub Pages、本機）就直接抓完整檔，不多發任何探測請求。
@@ -40,7 +84,17 @@ async function wasmBlobURL() {
             if (!pr.ok) throw new Error('wasm part ' + name + ' HTTP ' + pr.status);
             blobs.push(await pr.blob());
         }
-        return URL.createObjectURL(new Blob(blobs, { type: 'application/wasm' }));
+        const merged = new Blob(blobs, { type: 'application/wasm' });
+        // 合併後驗證大小與 SHA-256（deploy.sh 於建置時寫入 wasm-size / wasm-sha256）
+        const sizeMeta = document.querySelector('meta[name="wasm-size"]');
+        const hashMeta = document.querySelector('meta[name="wasm-sha256"]');
+        if (sizeMeta && merged.size !== Number(sizeMeta.content)) throw new Error('wasm size mismatch');
+        if (hashMeta && window.crypto && crypto.subtle) {
+            const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', await merged.arrayBuffer()));
+            const hex = [...digest].map(x => x.toString(16).padStart(2, '0')).join('');
+            if (hex !== hashMeta.content) throw new Error('wasm hash mismatch');
+        }
+        return URL.createObjectURL(merged);
     }
     return toBlobURL('./ffmpeg/ffmpeg-core.wasm', 'application/wasm');
 }
@@ -197,10 +251,14 @@ function showToast(message, type = 'info') {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-    <span class="toast-icon">${icons[type]}</span>
-    <span class="toast-message">${message}</span>
-  `;
+    const iconEl = document.createElement('span');
+    iconEl.className = 'toast-icon';
+    iconEl.textContent = icons[type];
+    const msgEl = document.createElement('span');
+    msgEl.className = 'toast-message';
+    msgEl.textContent = message;
+    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    toast.append(iconEl, msgEl);
 
     elements.toastContainer.appendChild(toast);
 
@@ -290,7 +348,7 @@ async function initFFmpegOnce() {
 
     // Check if FFmpegWASM library is available
     if (typeof FFmpegWASM === 'undefined') {
-        showToast('FFmpeg 函式庫載入失敗，請重新整理頁面', 'error');
+        showToast('轉檔元件載入失敗，請重新整理頁面再試一次', 'error');
         console.error('FFmpegWASM is not defined');
         return false;
     }
@@ -333,7 +391,7 @@ async function initFFmpegOnce() {
             }
         });
 
-        elements.ffmpegLoadingText.textContent = '正在載入 FFmpeg 核心...';
+        elements.ffmpegLoadingText.textContent = '正在載入轉檔元件（首次約需數秒）...';
         elements.ffmpegLoadingProgress.style.width = '25%';
 
         // Use local files to avoid CORS issues with workers
@@ -344,7 +402,7 @@ async function initFFmpegOnce() {
         });
 
         elements.ffmpegLoadingProgress.style.width = '100%';
-        elements.ffmpegLoadingText.textContent = 'FFmpeg 已就緒';
+        elements.ffmpegLoadingText.textContent = '轉檔元件已就緒';
 
         ffmpegReady = true;
 
@@ -356,7 +414,7 @@ async function initFFmpegOnce() {
     } catch (error) {
         console.error('Failed to load FFmpeg:', error);
         elements.ffmpegLoadingOverlay.classList.add('hidden');
-        showToast('FFmpeg 載入失敗: ' + error.message, 'error');
+        showToast('轉檔元件載入失敗，請檢查網路連線後重新整理頁面', 'error');
         return false;
     }
 }
@@ -376,7 +434,13 @@ async function getVideoInfo(file) {
         // console errors even though metadata was read successfully.
         const revokeSoon = (url) => setTimeout(() => URL.revokeObjectURL(url), 0);
 
+        const giveUp = setTimeout(() => {
+            revokeSoon(video.src);
+            resolve({ duration: 0, width: 1920, height: 1080, size: file.size });
+        }, 4000);
+
         video.onloadedmetadata = () => {
+            clearTimeout(giveUp);
             revokeSoon(video.src);
             resolve({
                 duration: video.duration,
@@ -387,6 +451,7 @@ async function getVideoInfo(file) {
         };
 
         video.onerror = () => {
+            clearTimeout(giveUp);
             revokeSoon(video.src);
             // Return default values if we can't get metadata
             resolve({
@@ -411,11 +476,16 @@ async function generateThumbnail(file) {
         // See comment in getVideoInfo() above re: deferred revoke.
         const revokeSoon = (url) => setTimeout(() => URL.revokeObjectURL(url), 0);
 
+        // 保險：瀏覽器永遠不觸發事件（編碼不支援、策略限制）時 4 秒後放棄縮圖，避免整個流程卡住
+        const giveUp = setTimeout(() => { revokeSoon(video.src); resolve(null); }, 4000);
+
+        video.preload = 'auto';
         video.onloadeddata = () => {
-            video.currentTime = Math.min(1, video.duration / 4);
+            video.currentTime = Math.min(1, (video.duration || 0) / 4);
         };
 
         video.onseeked = () => {
+            clearTimeout(giveUp);
             const canvas = document.createElement('canvas');
             canvas.width = 120;
             canvas.height = 80;
@@ -426,6 +496,7 @@ async function generateThumbnail(file) {
         };
 
         video.onerror = () => {
+            clearTimeout(giveUp);
             revokeSoon(video.src);
             resolve(null);
         };
@@ -457,9 +528,18 @@ async function addFiles(fileList) {
             continue;
         }
 
+        if (file.size > MAX_FILE_BYTES) {
+            showToast(`${file.name} 超過 2GB，瀏覽器無法處理，請先用其他工具裁切或分段`, 'error');
+            continue;
+        }
+        if (file.size === 0 || !(await looksLikeVideo(file))) {
+            showToast(`${file.name} 看起來不是有效的影片檔，已略過`, 'error');
+            continue;
+        }
+
         // Warn about large files that may cause browser OOM
         if (file.size > LARGE_FILE_THRESHOLD) {
-            showToast(`${file.name} 超過 500MB，可能導致瀏覽器記憶體不足`, 'warning');
+            showToast(`${file.name} 超過 500MB，處理時可能因記憶體不足而失敗`, 'warning');
         }
 
         // Check if already added
@@ -547,7 +627,7 @@ function updateFileList() {
     <div class="file-item" data-index="${index}">
       ${thumbnailHtml}
       <div class="file-info">
-        <div class="file-name">${item.name}</div>
+        <div class="file-name">${escapeHtml(item.name)}</div>
         <div class="file-meta">
           <span>📐 ${videoWidth}×${videoHeight}</span>
           <span>📦 ${formatBytes(item.info.size)}</span>
@@ -560,7 +640,7 @@ function updateFileList() {
         </div>
       </div>
       <div class="file-actions">
-        <button class="file-action-btn remove" title="移除" data-action="remove-file" data-index="${index}">🗑️</button>
+        <button class="file-action-btn remove" title="移除" aria-label="移除這個檔案" data-action="remove-file" data-index="${index}">🗑️</button>
       </div>
     </div>
   `;
@@ -573,13 +653,13 @@ function updateFileList() {
 async function convertVideo(fileItem, outputFormat, settings) {
     if (!ffmpegReady) {
         const loaded = await initFFmpeg();
-        if (!loaded) throw new Error('FFmpeg 未就緒');
+        if (!loaded) throw new Error('轉檔元件未就緒');
     }
 
     // Using our custom fetchFile function (defined at top of file)
 
     const inputFileName = `input_${Date.now()}.${fileItem.extension}`;
-    const baseName = fileItem.name.replace(/\.[^/.]+$/, '');
+    const baseName = sanitizeFileName(fileItem.name.replace(/\.[^/.]+$/, '')) || 'video';
     const timestamp = getTimestamp();
     const outputFileName = `${baseName}_${timestamp}.${outputFormat}`;
 
@@ -687,7 +767,7 @@ async function convertVideo(fileItem, outputFormat, settings) {
     } catch (readErr) {
         // Clean up input file before throwing
         try { await ffmpeg.deleteFile(inputFileName); } catch (_) {}
-        throw new Error('編碼失敗：FFmpeg 未產生輸出檔案');
+        throw new Error('編碼失敗：未產生輸出檔案');
     }
 
     if (!outputData || outputData.length === 0) {
@@ -723,7 +803,7 @@ async function startConversion() {
     if (!ffmpegReady) {
         const loaded = await initFFmpeg();
         if (!loaded) {
-            showToast('FFmpeg 載入失敗，無法開始轉檔', 'error');
+            showToast('轉檔元件尚未載入完成，請重新整理頁面後再試', 'error');
             return;
         }
     }
@@ -765,7 +845,7 @@ async function startConversion() {
 
         // Reset progress UI
         elements.currentFileInfo.innerHTML = `
-      <div class="file-name">正在處理: ${fileItem.name} (${i + 1}/${state.files.length})</div>
+      <div class="file-name">正在處理: ${escapeHtml(fileItem.name)} (${i + 1}/${state.files.length})</div>
     `;
         elements.progressBar.querySelector('.progress-fill').style.width = '0%';
         elements.progressText.textContent = '0%';
@@ -793,7 +873,7 @@ async function startConversion() {
                 state.results.push({
                     inputName: fileItem.name,
                     success: false,
-                    error: error.message
+                    error: friendlyError(error)
                 });
                 showToast(`轉檔失敗: ${fileItem.name}`, 'error');
             }
@@ -840,13 +920,13 @@ function renderResultsList() {
         <div class="result-item error" data-index="${index}">
           <div class="result-icon" style="background: linear-gradient(135deg, var(--danger), #dc2626)">❌</div>
           <div class="result-info">
-            <div class="result-name">${result.inputName}</div>
+            <div class="result-name">${escapeHtml(result.inputName)}</div>
             <div class="result-stats">
-              <span class="stat-item" style="color: var(--danger)">${result.error || '轉檔失敗'}</span>
+              <span class="stat-item" style="color: var(--danger)">${escapeHtml(result.error || '轉檔失敗')}</span>
             </div>
           </div>
           <div class="result-actions">
-            <button class="file-action-btn remove" title="刪除記錄" data-action="remove" data-index="${index}">🗑️</button>
+            <button class="file-action-btn remove" title="刪除記錄" aria-label="刪除這筆記錄" data-action="remove" data-index="${index}">🗑️</button>
           </div>
         </div>
       `;
@@ -858,7 +938,7 @@ function renderResultsList() {
       <div class="result-item" data-index="${index}">
         <div class="result-icon">✓</div>
         <div class="result-info">
-          <div class="result-name">${result.outputName}</div>
+          <div class="result-name">${escapeHtml(result.outputName)}</div>
           <div class="result-stats">
             <span class="stat-item">
               <span class="stat-label">原始:</span>
@@ -883,7 +963,7 @@ function renderResultsList() {
             <span class="btn-icon">▶️</span>
             預覽
           </button>
-          <button class="file-action-btn remove" title="刪除記錄" data-action="remove" data-index="${index}">🗑️</button>
+          <button class="file-action-btn remove" title="刪除記錄" aria-label="刪除這筆記錄" data-action="remove" data-index="${index}">🗑️</button>
         </div>
       </div>
     `;
@@ -896,7 +976,7 @@ function downloadResult(index) {
 
     const link = document.createElement('a');
     link.href = result.url;
-    link.download = result.outputName;
+    link.download = sanitizeFileName(result.outputName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1188,7 +1268,7 @@ function init() {
             .then(success => {
                 if (success) {
                     console.log('FFmpeg pre-loaded successfully!');
-                    showToast('FFmpeg 已準備就緒', 'success');
+                    showToast('已準備就緒，可以開始轉檔', 'success');
                 } else {
                     console.error('FFmpeg pre-load failed');
                 }
